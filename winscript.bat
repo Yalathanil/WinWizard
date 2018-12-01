@@ -9,6 +9,8 @@ echo.
 
 
 Echo Initializing
+set /p Init="Enter M to skip: "
+if %Init%==M (goto :M)
 ::Choco lets us download a variety of things that are important. 
 ::Once set up it can be called by choco install blank
 ::Need to add a templates that can be downloaded and put in for security settings and the like
