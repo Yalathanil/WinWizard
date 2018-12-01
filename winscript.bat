@@ -216,7 +216,7 @@ goto :M
 ::Updates
 :8
 echo Initializing 3rd Pary Program Downloads and Updates
-choco update Firefox
+choco install Firefox
 choco install sysinternals
 choco install ie11
 choco install malwarebytes
