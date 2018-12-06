@@ -45,7 +45,7 @@ echo SysInt   -- S
 echo Auto     -- A
 echo Menu     -- M
 echo.
-Choice /C 123456789BAM /N /M "Please choose a functionality: "
+Choice /C 123456789SAM /N /M "Please choose a functionality: "
 goto %errorlevel%
 
 
