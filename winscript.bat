@@ -148,22 +148,35 @@ net users
 set /p user="Enter username to be manipulated: "
 Echo Delete user             -- 1
 Echo Add user                -- 2
-Echo Groups                  -- 3
+Echo Secure Passwords        -- 3
+Echo Groups                  -- 4
 Echo Return to main menu     -- M
+echo.
+echo Password will be set to P@ssword123 for all accounts
+echo.
 set /P uservar="Enter your selection: "
-
+::Delet User
 if [%uservar%]==[1] (net user %user% /DELETE)
-
+::Add User
 if [%uservar%]==[2] (
 	set /p newuserpassword="Enter new user password: "
-	net user /ADD %user% %newuserpassword%
 	echo.
 	echo New User Added:
 	echo Username: %user% Password: %newuserpassword%
+	net user /ADD %user% %newuserpassword%
 	set newuserpassword=
+	
 )
-
-if [%uservar%]==[3] (
+::Set Secure Passords
+echo Password will be set to P@ssword123 for all accounts
+if %uservar%==1 (
+	for %%A in ('net users') do (
+	net user %%A P@ssword123
+	goto :beginUser
+	)
+)
+::Group Management
+if [%uservar%]==[4] (
 	:beginGroup
 	echo Select group level
 	set /p grouplvl="GROUP/LOCALGROUP: "
@@ -466,6 +479,7 @@ if %choice%==M do (
 pause
 endlocal
 goto :M
+
 
 
 
