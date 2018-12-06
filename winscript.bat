@@ -9,17 +9,22 @@ echo.
 
 
 Echo Initializing
-set /p Init="Enter M to skip: "
-if %Init%==M (goto :M)
 ::Choco lets us download a variety of things that are important. 
 ::Once set up it can be called by choco install blank
 ::Need to add a templates that can be downloaded and put in for security settings and the like
 ::Along with a checklist
+echo.
+echo If you want to skip the initial step, enter MENU
+set /p Init="Enter here: "
+if Init==M do (
+	goto :M
+	)
 PowerShell Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 pause
 
 
 :M
+clr
 Echo ----------------------------------------
 echo                  MENU                  
 echo ----------------------------------------
@@ -27,23 +32,68 @@ echo.
 echo.
 echo FUNCTIONALITIES:
 echo.
-echo Services -- 1
-echo Auditing -- 2
-echo Firewall -- 3
-echo Media    -- 4
+echo Update   -- 1
+echo Programs -- 2
+echo Services -- 3
+echo Policies -- 4
 echo Users    -- 5
-echo Policies -- 6
-echo   -- 7
-echo Update   -- 8
+echo Media    -- 6
+echo Network  -- 7
+echo Start Up -- 8
+echo Computer -- 9
+echo SysInt   -- S
 echo Auto     -- A
 echo Menu     -- M
 echo.
-Choice /C 12345678AM /N /M "Please choose a functionality: "
+Choice /C 123456789BAM /N /M "Please choose a functionality: "
 goto %errorlevel%
 
 
-::Disables Vulnerable Services
+::Updates & Install
 :1
+clr
+setlocal
+echo Initializing 3rd Pary Program Downloads and Updates
+choco update Firefox
+choco install sysinternals
+choco install ie11
+choco install malwarebytes
+choco install notepadplusplus
+echo Initializing Windows Updates
+pause
+wuauclt /detectnow /updatenow
+endlocal
+goto :M
+
+::Programs
+:2
+clr
+setlocal
+echo Program management
+echo.
+echo Start Microsoft Defender
+echo.
+cd %programfiles%\Windows Defender
+start MSASCui.exe
+pause
+echo Remove programs as dictated by the README
+echo.
+start appwiz.cpl
+pause
+cd C:\Program Files (x86)\Malwarebytes' Anti-Malware
+echo Run Malware Bytes
+start mbam.exe /fullauto
+pause
+cd /d %homedrive%\Users\%username%\Downloads
+
+endlocal
+goto :M
+
+
+::Disables Vulnerable Services
+:3
+clr
+setlocal
 Echo Disabling Vulnerable Services
 sc config SessionEnv start=  disabled 
 sc stop SessionEnv 
@@ -59,13 +109,16 @@ sc config RemoteAccess start= disabled
 sc stop RemoteAccess
 
 echo Enabling Important Services
-sc config MpsSvc start= auto
-sc start MpsSvc 
+
+endlocal
 goto :M
 
-::Turns on all Auditing
-:2
-Echo Enabling Auditing
+
+::Policies
+:4
+clr
+setlocal
+echo Enabling Auditing
 auditpol /set /category:"logon/logoff" /success:enable /failure:enable
 auditpol /set /category:"Account Logon" /success:enable /failure:enable
 auditpol /set /category:"Account Management" /success:enable /failure:enable
@@ -75,64 +128,18 @@ auditpol /set /category:"Object Access" /success:enable /failure:enable
 auditpol /set /category:"Policy Change" /success:enable /failure:enable
 auditpol /set /category:"Privilege Use" /success:enable /failure:enable
 auditpol /set /category:"System" /success:enable /failure:enable
+net accounts /minpwlen:8 /maxpwage:90 /minpwage:15 /uniquepw:24
+reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers /v DisableAutoplay /t REG_DWORD /d 0 
+reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v SCRNSAVE.EXE /t REG_SZ /d C:\Windows\system32\scrnsave.scr /f
+secedit /import /db secedit.sdb /cfg "c:\users\%username%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf"
+secedit /refreshpolicy machine_policy /enforce /quiet
+endlocal
 goto :M
-
-::Turns on Firewall
-:3
-echo Enabled Firewall
-netsh advfirewall set allprofiles state on
-goto :M
-
-::Serches for Media Files
-:4
-:beginMedia
-Echo Media Management Menu
-echo.
-echo Purge system of all media -- 1
-echo Generate log of all media -- 2
-echo Search for particular ext -- 3
-echo Return to menu            -- M
-set /p mediaf="Enter Selection Here: "
-if [%mediaf%]==[1] (
-	del /p  %homedrive%\*.mp3 /s /a-s
-	del /p  %homedrive%\*.mp4 /s /a-s
-	del /p  %homedrive%\*.png /s /a-s
-	del /p  %homedrive%\*.jpg /s /a-s
-	del /p  %homedrive%\*.mov /s /a-s
-	del /p  %homedrive%\*.avi /s /a-s
-	del /p  %homedrive%\*.wmv /s /a-s
-	goto :beginMedia
-)
-if [%mediaf%]==[2] (
-	Type NUL > MediaLog.txt
-	cd %homedrive%\
-	dir /S /B /A *.txt *.mp3 *.mp4 *.mov *.wav *.bat *.vbi >> MediaLog.txt
-	start MediaLog.txt
-	echo MediaLog.txt will be deleted once done
-	pause
-	del MediaLog.txt
-	goto :beginMedia
-)
-if [%mediaf%]==[3] (
-	Type NUL > MediaLog.txt
-	set /p mediaext="Enter extention to search for (.): "
-	cd %homedrive%\
-	dir /S /B /A *.%mediaext% >> MediaLog.txt
-	start MediaLog.txt
-	echo MediaLog.txt will be deleted once done
-	pause
-	del MediaLog.txt
-	goto :beginMedia
-)
-if [%mediaf%]==[M] (
-	goto :M
-)
-echo Incorrect value entered.
-goto :beginMedia
 
 
 ::User/Group Management
 :5
+clr
 setlocal
 net user guest /active:no
 ::Users
@@ -198,34 +205,270 @@ if [%uservar%]==[3] (
 			set addusergroup=
 			goto :beginGroup
 		)
+		if [%grouplvl%==[5] (
+			goto :beginUsers
+		)
 		
 )
-		if [%uservar%]==[M] (
-			goto :M
-)
+	if [%uservar%]==[M] (
+		goto :M
+
+		)
 echo Incorrect value entered
 goto :beginning
 endlocal
-goto :beginUser
 
-::Policies
+
+::Serches for Media Files
 :6
-net accounts /minpwlen:8 /maxpwage:90 /minpwage:15 /uniquepw:24
-reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers /v DisableAutoplay /t REG_DWORD /d 0 
-secedit /import /db secedit.sbd /cfg c:\Users\%userprofile%\Desktop\Win10SecPolTemp.inf
+clr
+setlocal
+bcdedit.exe /set {current} nx AlwaysOn
+:beginMedia
+Echo Media Management Menu
+echo.
+echo Purge system of all media -- 1
+echo Generate log of all media -- 2
+echo Search for particular ext -- 3
+echo Search in users		   -- 4
+echo Return to menu            -- M
+set /p mediaf="Enter Selection Here: "
+if [%mediaf%]==[1] (
+	del /p  %homedrive%\*.mp3 /s /a-s
+	del /p  %homedrive%\*.mp4 /s /a-s
+	del /p  %homedrive%\*.png /s /a-s
+	del /p  %homedrive%\*.jpg /s /a-s
+	del /p  %homedrive%\*.mov /s /a-s
+	del /p  %homedrive%\*.avi /s /a-s
+	del /p  %homedrive%\*.wmv /s /a-s
+	goto :beginMedia
+)
+if [%mediaf%]==[2] (
+	Type NUL > MediaLog.txt
+	cd %homedrive%\
+	echo .mp3 >> MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.mp3 > MediaLog.txt
+	echo .mp4 > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.mp4 > MediaLog.txt
+	echo .mov > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.mov > MediaLog.txt
+	echo .pdf > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.pdf > MediaLog.txt
+	echo .vbi > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.vbi > MediaLog.txt
+    echo .msi > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt	
+	dir /S /B /A *.msi > MediaLog.txt
+	echo .bat > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.bat > MediaLog.txt	
+	echo .exe > MediaLog.txt
+	echo. > MediaLog.txt
+	echo. > MediaLog.txt
+	dir /S /B /A *.exe > MediaLog.txt	
+	start MediaLog.txt
+	echo MediaLog.txt will be deleted once done
+	pause
+	del MediaLog.txt
+	goto :beginMedia
+)
+if [%mediaf%]==[3] (
+	Type NUL > MediaLog.txt
+	set /p mediaext="Enter extention to search for (.): "
+	cd %homedrive%\
+	dir /S /B /A *.%mediaext% >> MediaLog.txt
+	start MediaLog.txt
+	echo MediaLog.txt will be deleted once done
+	pause
+	del MediaLog.txt
+	goto :beginMedia
+)
+if [%mediaf%]==[4] (
+	dir c:\Users /b /s
+	goto :beginMedia
+)
+if [%mediaf%]==[M] (
+	goto :M
+)
+echo Incorrect value entered.
+endlocal
+goto :beginMedia
+
+
+::Network Security
+:7
+clr
+setlocal
+echo Network Security Menu
+echo.
+echo Firewall    -- 1
+echo DNS         -- 2
+echo Netstat     -- 3
+echo TCP         -- 4
+echo Main Menu   -- M
+echo.
+set /p choice="Enter secletion here: "
+::Firewall
+if %choice%==1 (
+	clr
+	echo Firewall 
+	sc config MpsSvc start= auto
+	sc start MpsSvc
+	echo. 
+	echo MpsSvc enabled
+	netsh advfirewall set allprofiles state on
+	echo Enabled Firewall
+	goto :7
+	)
+::DNS
+if %choice%==2 (
+	clr
+	echo DNS
+	ipconfig /displaydns
+	echo.
+	echo.
+	set /p A="Do you wish to purge the DNS cache? (y/n): "
+	if %A%==y do (
+		ipconfig /flushdns
+		)
+	pause
+	goto :7	
+	)
+::Netstat
+if %choice%==3 (
+	clr
+	echo Netstat
+	netstat -a
+	pause
+	netstat -e
+	pause
+	netstat -b	
+	pause 
+	netstat -r
+	pause
+	goto :7
+	)
+if %choice%==M (
+	goto :M
+	)
+endlocal
 goto :M
 
-::Updates
+
+::Start up
 :8
-echo Initializing 3rd Pary Program Downloads and Updates
-choco install Firefox
-choco install sysinternals
-choco install ie11
-choco install malwarebytes
-echo Initializing Windows Updates
+clr
+setlocal
+echo Welcome to the start up manager
+echo.
+echo Auto Runs
+set /p choice="Do you want to run Autoruns.exe? (Y/N): "
+if %choice%=Y do (
+	start autoruns.exe
+	pause
+	)
+echo WMIC 
+set /p choice1="Do you wish to use WMIC? (Y/N): "
+if %choice1%==Y do (
+	:WMIC
+	wmic startup get caption,command 
+	echo If there are any suspicious processes remove them.
+	set /p prog="Enter program name here: "
+	wmic startup delete %prog%
+	set /p choice2="Do you wish to use WMIC again? (Y/N): "
+	if %choice2%==Y do (
+		goto :WMIC
+	)
+)
 pause
-wuauclt /detectnow /updatenow
+endlocal
+
+
+::Comupter Information
+:9
+clr
+setlocal
+echo Computer Information
+echo.
+echo Ipconfig:
+echo.
+ipconfig /all
+pause
+endlocal
 goto :M
+
+::System Internals
+:S
+clr
+setlocal
+:Sys
+clr
+echo Run Sysinternals
+echo.
+echo Process Explorer -- 1
+echo TCP View         -- 2
+echo Autoruns         -- 3
+echo Sigcheck         -- 4
+echo Sdelete          -- 5
+echo AccessEnums      -- 6
+echo Return to Menu   -- M
+echo.
+start https://ptgmedia.pearsoncmg.com/images/9780735656727/samplepages/9780735656727.pdf
+choice=="Enter selection here: "
+if %choice%==1 do (
+	start procexp.exe
+	pause
+	goto :Sys
+	)
+if %choice%==2 do (
+	start tcpview.exe
+	pause
+	goto :Sys
+	)
+if %choice%==3 do (
+	start autoruns.exe
+	pause
+	goto :Sys
+	)
+if %choice%==4 do (
+	start sigcheck.exe
+	pause
+	goto :Sys
+	)
+if %choice%==5 do (
+	start sdelete.exe
+	pause
+	goto :Sys
+	)	
+if %choice%==6 do (
+	start accessenums.exe
+	pause
+	goto :Sys
+	)
+if %choice%==M do (
+	goto :M
+	pause
+	goto :Sys
+	)
+	
+pause
+endlocal
+goto :M
+
+
+
 
 
 
