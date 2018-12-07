@@ -16,7 +16,7 @@ Echo Initializing
 echo.
 echo If you want to skip the initial step, enter MENU
 set /p Init="Enter here: "
-if Init==M do (
+if Init==M (
 	goto :M
 	)
 PowerShell Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -24,7 +24,7 @@ pause
 
 
 :M
-clr
+cls
 Echo ----------------------------------------
 echo                  MENU                  
 echo ----------------------------------------
@@ -45,13 +45,13 @@ echo SysInt   -- S
 echo Auto     -- A
 echo Menu     -- M
 echo.
-Choice /C 123456789SAM /N /M "Please choose a functionality: "
+Choice /C 123456789BAM /N /M "Please choose a functionality: "
 goto %errorlevel%
 
 
 ::Updates & Install
 :1
-clr
+cls
 setlocal
 echo Initializing 3rd Pary Program Downloads and Updates
 choco update Firefox
@@ -67,7 +67,7 @@ goto :M
 
 ::Programs
 :2
-clr
+cls
 setlocal
 echo Program management
 echo.
@@ -92,7 +92,7 @@ goto :M
 
 ::Disables Vulnerable Services
 :3
-clr
+cls
 setlocal
 Echo Disabling Vulnerable Services
 sc config SessionEnv start=  disabled 
@@ -116,7 +116,7 @@ goto :M
 
 ::Policies
 :4
-clr
+cls
 setlocal
 echo Enabling Auditing
 auditpol /set /category:"logon/logoff" /success:enable /failure:enable
@@ -131,15 +131,15 @@ auditpol /set /category:"System" /success:enable /failure:enable
 net accounts /minpwlen:8 /maxpwage:90 /minpwage:15 /uniquepw:24
 reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers /v DisableAutoplay /t REG_DWORD /d 0 
 reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v SCRNSAVE.EXE /t REG_SZ /d C:\Windows\system32\scrnsave.scr /f
-secedit /import /db secedit.sdb /cfg "c:\users\%username%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf"
-secedit /refreshpolicy machine_policy /enforce /quiet
+secedit /configure /db secedit.sdb /cfg c:\users\%username%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf
+
 endlocal
 goto :M
 
 
 ::User/Group Management
 :5
-clr
+cls
 setlocal
 net user guest /active:no
 ::Users
@@ -155,7 +155,7 @@ echo.
 echo Password will be set to P@ssword123 for all accounts
 echo.
 set /P uservar="Enter your selection: "
-::Delet User
+::Delete User
 if [%uservar%]==[1] (net user %user% /DELETE)
 ::Add User
 if [%uservar%]==[2] (
@@ -185,6 +185,7 @@ if [%uservar%]==[4] (
 	echo Add Group              -- 2
 	echo Add User to Group      -- 3
 	echo Remove User from Group -- 4
+	echo 
 	echo Return to User/Group   -- 5
 	set /p groupvar="Enter Value: "
 	
@@ -234,7 +235,7 @@ endlocal
 
 ::Serches for Media Files
 :6
-clr
+cls
 setlocal
 bcdedit.exe /set {current} nx AlwaysOn
 :beginMedia
@@ -322,7 +323,7 @@ goto :beginMedia
 
 ::Network Security
 :7
-clr
+cls
 setlocal
 echo Network Security Menu
 echo.
@@ -335,7 +336,7 @@ echo.
 set /p choice="Enter secletion here: "
 ::Firewall
 if %choice%==1 (
-	clr
+	cls
 	echo Firewall 
 	sc config MpsSvc start= auto
 	sc start MpsSvc
@@ -347,7 +348,7 @@ if %choice%==1 (
 	)
 ::DNS
 if %choice%==2 (
-	clr
+	cls
 	echo DNS
 	ipconfig /displaydns
 	echo.
@@ -361,7 +362,7 @@ if %choice%==2 (
 	)
 ::Netstat
 if %choice%==3 (
-	clr
+	cls
 	echo Netstat
 	netstat -a
 	pause
@@ -382,26 +383,26 @@ goto :M
 
 ::Start up
 :8
-clr
+cls
 setlocal
 echo Welcome to the start up manager
 echo.
 echo Auto Runs
 set /p choice="Do you want to run Autoruns.exe? (Y/N): "
-if %choice%=Y do (
+if %choice%=Y (
 	start autoruns.exe
 	pause
 	)
 echo WMIC 
 set /p choice1="Do you wish to use WMIC? (Y/N): "
-if %choice1%==Y do (
+if %choice1%==Y (
 	:WMIC
 	wmic startup get caption,command 
 	echo If there are any suspicious processes remove them.
 	set /p prog="Enter program name here: "
 	wmic startup delete %prog%
 	set /p choice2="Do you wish to use WMIC again? (Y/N): "
-	if %choice2%==Y do (
+	if %choice2%==Y (
 		goto :WMIC
 	)
 )
@@ -411,7 +412,7 @@ endlocal
 
 ::Comupter Information
 :9
-clr
+cls
 setlocal
 echo Computer Information
 echo.
@@ -424,10 +425,10 @@ goto :M
 
 ::System Internals
 :S
-clr
+cls
 setlocal
 :Sys
-clr
+cls
 echo Run Sysinternals
 echo.
 echo Process Explorer -- 1
@@ -440,37 +441,37 @@ echo Return to Menu   -- M
 echo.
 start https://ptgmedia.pearsoncmg.com/images/9780735656727/samplepages/9780735656727.pdf
 choice=="Enter selection here: "
-if %choice%==1 do (
+if %choice%==1 (
 	start procexp.exe
 	pause
 	goto :Sys
 	)
-if %choice%==2 do (
+if %choice%==2 (
 	start tcpview.exe
 	pause
 	goto :Sys
 	)
-if %choice%==3 do (
+if %choice%==3 (
 	start autoruns.exe
 	pause
 	goto :Sys
 	)
-if %choice%==4 do (
+if %choice%==4 (
 	start sigcheck.exe
 	pause
 	goto :Sys
 	)
-if %choice%==5 do (
+if %choice%==5 (
 	start sdelete.exe
 	pause
 	goto :Sys
 	)	
-if %choice%==6 do (
+if %choice%==6 (
 	start accessenums.exe
 	pause
 	goto :Sys
 	)
-if %choice%==M do (
+if %choice%==M (
 	goto :M
 	pause
 	goto :Sys
