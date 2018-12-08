@@ -14,12 +14,13 @@ Echo Initializing
 ::Need to add a templates that can be downloaded and put in for security settings and the like
 ::Along with a checklist
 echo.
-echo If you want to skip the initial step, enter MENU
+echo If you want to skip the initial step, enter M
 set /p Init="Enter here: "
 if Init==M (
 	goto :M
 	)
-PowerShell Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+choco feature enable -n allowGlobalConfirmation
 pause
 
 
@@ -107,9 +108,12 @@ sc config RemoteRegistry start= disabled
 sc stop RemoteRegistry
 sc config RemoteAccess start= disabled
 sc stop RemoteAccess
-
-echo Enabling Important Services
-
+pause
+echo Starting services.exe
+echo.
+echo If new bad services are found and disabled, make sure to update the script with them.
+start services.msc
+pause
 endlocal
 goto :M
 
@@ -131,8 +135,12 @@ auditpol /set /category:"System" /success:enable /failure:enable
 net accounts /minpwlen:8 /maxpwage:90 /minpwage:15 /uniquepw:24
 reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers /v DisableAutoplay /t REG_DWORD /d 0 
 reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v SCRNSAVE.EXE /t REG_SZ /d C:\Windows\system32\scrnsave.scr /f
-secedit /configure /db secedit.sdb /cfg c:\users\%username%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf
 
+::secedit /configure /db "%systemroot%\secedit.db" /cfg "%USERPROFILE%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf"
+
+start mmc.exe
+
+pause
 endlocal
 goto :M
 
@@ -310,7 +318,8 @@ if [%mediaf%]==[3] (
 	goto :beginMedia
 )
 if [%mediaf%]==[4] (
-	dir c:\Users /b /s
+	dir c:\Users /b /s /a >> UserFiles.txt
+	start UserFiles.txt
 	goto :beginMedia
 )
 if [%mediaf%]==[M] (
@@ -344,6 +353,14 @@ if %choice%==1 (
 	echo MpsSvc enabled
 	netsh advfirewall set allprofiles state on
 	echo Enabled Firewall
+	netsh advfirewall firewall set rule name="Remote Assistance (DCOM-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Remote Assistance (PNRP-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Remote Assistance (RA Server TCP-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Remote Assistance (SSDP TCP-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Remote Assistance (SSDP UDP-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Remote Assistance (TCP-In)" new enable=no 
+	netsh advfirewall firewall set rule name="Telnet Server" new enable=no 
+	netsh advfirewall firewall set rule name="netcat" new enable=no
 	goto :7
 	)
 ::DNS
@@ -467,7 +484,7 @@ if %choice%==5 (
 	goto :Sys
 	)	
 if %choice%==6 (
-	start accessenums.exe
+	start accessenum.exe
 	pause
 	goto :Sys
 	)
