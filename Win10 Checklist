@@ -1,0 +1,45 @@
+Win 10 Checklist
+
+1. Download files from github
+
+2. Begin Script / Read Forensics Questions
+
+3. Install and Update 3rd Party Programs
+
+4. Begin Windows updates (may have to do this manually)
+
+5. Turn on/Run Windows Defender
+
+6. Uninstall programs
+
+7. Run Malwarebytes (may have to do this manually as the choco package doesnt work)
+
+8. Run through the Services section, and manually diable/enable services. !!UPDATE THE SCRIPT WITH ANY SERVICES THAT ARE BAD!!
+
+9. Enable Auditing
+
+10. If the script is fixed: Let it import the security settings. If not, manually go into Local Security Policy>Computer settings and
+    right click on the security policy icon. Then select import, and import the .inf file that is in downloads in the folder WinWizard.
+   
+11. Do users, ether run through the script or se the MMC. RN the users section is shit so dont use it
+
+12. Run through media files. I suugest that you log them first to try and find any hidden ones needed for forensic questions. 
+
+13. Set up the firewall and other network security stuff
+
+14. Flush that DNS
+
+15. Run that netstat if you want
+
+16. TCP isn't set up yet
+
+17. Start Autoruns.exe, WMIC is optional
+
+18. Look at the ip
+
+19. Run the SysInternals if needed. TCPViewer and ProcessExplorer are good, and use AccessEnum.exe if permissions are needed
+
+20. Woot?
+
+
+
