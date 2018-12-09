@@ -135,9 +135,7 @@ auditpol /set /category:"System" /success:enable /failure:enable
 net accounts /minpwlen:8 /maxpwage:90 /minpwage:15 /uniquepw:24
 reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers /v DisableAutoplay /t REG_DWORD /d 0 
 reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v SCRNSAVE.EXE /t REG_SZ /d C:\Windows\system32\scrnsave.scr /f
-
-::secedit /configure /db "%systemroot%\secedit.db" /cfg "%USERPROFILE%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf"
-
+secedit /configure /db c:\windows\security\local.sdb /cfg %USERPROFILE%\Downloads\WinWizard-master\WinWizard-master\Win10SecPolTemp.inf
 start mmc.exe
 
 pause
